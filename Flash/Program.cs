@@ -13,24 +13,28 @@ namespace Flash
     {
         static void Main(string[] args)
         {
-            FileInfo f = new FileInfo(@"C:\Users\d3n1s\Desktop\Output.txt");
-            List<String> ls = GetFiles(GetDrive());
-
-            /*if (!f.Exists)
+            string path = @"C:\Users\Public\Documents\Output.txt";
+            FileStream fstream = null;
+            try
             {
-                var fs = f.Create();
-                fs.Close();
-            }
-            else
-            {
-                using (StreamWriter sw = f.AppendText())
+                fstream = new FileStream(path, FileMode.OpenOrCreate);
+                using (StreamWriter sw = new StreamWriter(fstream))
                 {
-                    sw.WriteLine(GetFiles(GetDrive()));
+                    foreach (string str in GetFiles(GetDrive()))
+                    {
+                        sw.WriteLine(str);
+                    }
                 }
-            }*/
-            foreach (string s in ls)
-                Console.WriteLine(s.ToString());
-
+                    
+            }
+            catch(Exception E)
+            {
+                Console.WriteLine(E.Message);
+            }
+            finally
+            {
+                fstream?.Close();
+            }
         }
 
         public static string GetDrive()
@@ -56,48 +60,31 @@ namespace Flash
                     }
                     else flag = true;
             }
-            return @"C:\temp";
+            return $@"{allDriveInfo[--input]}";
         }
-        public static List<String> GetFiles(string path, int levelCount = 1)
+        public static List<String> GetFiles(string path, string tabs = "")
         {
-            
             List<String> ls = new List<String>();
             DirectoryInfo di = new DirectoryInfo(path);
-            string tabs = "";
             try
             {
                 DirectoryInfo[] dirList = di.GetDirectories();
                 foreach (DirectoryInfo dir in dirList)
                 {
-                    for (int i = 0; i < levelCount; i++)
-                        tabs += "\t";
                     ls.Add($"{tabs}{dir.Name}");
-                    
-                    
-                    ls.AddRange(GetFiles(dir.FullName));
-                    
-
-
+                    ls.AddRange(GetFiles(dir.FullName, tabs+"\t"));
                 }
-
-                FileInfo[] filesList = di.GetFiles();
-                for (int i = 0; i < levelCount--; i++)
-                    tabs += "\t";
                 
-                foreach (FileInfo file in filesList)
+                FileSystemInfo[] filesList = di.GetFileSystemInfos(); ;
+                
+                foreach (FileSystemInfo file in filesList)
                 {
-                    
-                    ls.Add($"{tabs}{file.Name}");
-                    levelCount++;
-                    
-                    
+                    ls.Add($"{tabs}{file.ToString()}");
                 }
-
-
             }
             catch(Exception E)
             {
-                
+                Console.WriteLine(E.Message);
             }
             return ls;
         }
